@@ -4,6 +4,17 @@ import string
 import nltk
 from nltk.corpus import stopwords
 
+# 🔽 Download stopwords if not already present
+nltk.download('stopwords')
+
+# Load model & vectorizer
+model = joblib.load("model.pkl")
+vectorizer = joblib.load("vectorizer.pkl")
+
+# Stopwords setup
+stop_words = set(stopwords.words('english'))
+
+
 # Load saved model and vectorizer
 model = joblib.load("model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
