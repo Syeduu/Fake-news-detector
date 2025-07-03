@@ -1,37 +1,43 @@
 import gradio as gr
 import joblib
 import string
+import re
 import nltk
 from nltk.corpus import stopwords
 
-# Load saved model and vectorizer
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english'))
+
+# Load model and vectorizer
 model = joblib.load("model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
-# Setup stopwords
-stop_words = set(stopwords.words('english'))
-
+# Text cleaning function
 def clean_text(text):
-    text = text.lower()
+    text = str(text).lower()
     text = text.translate(str.maketrans('', '', string.punctuation))
     words = text.split()
-    filtered = [word for word in words if word not in stop_words]
-    return ' '.join(filtered)
+    return ' '.join([w for w in words if w not in stop_words])
 
 # Prediction function
 def predict_news(text):
     cleaned = clean_text(text)
+    
+    # Validate input
+    if len(cleaned.split()) < 4 or not re.search(r"[a-zA-Z]{3,}", cleaned):
+        return "⚠️ Please enter valid news content"
+    
     vec = vectorizer.transform([cleaned])
     pred = model.predict(vec)
     return "🟢 Real News" if pred[0] == 1 else "🔴 Fake News"
 
-# Interface
+# Gradio Interface
 interface = gr.Interface(
     fn=predict_news,
-    inputs="text",
+    inputs=gr.Textbox(lines=6, placeholder="Enter news headline or article..."),
     outputs="text",
     title="📰 Fake News Detector",
-    description="Type a news headline or article below to check if it's real or fake."
+    description="Enter a news article or headline to check if it's Real or Fake."
 )
 
 interface.launch()
